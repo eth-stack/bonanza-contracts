@@ -4,7 +4,7 @@ import * as storage from "../storage.json";
 import { writeAndLog } from "./util";
 
 async function main() {
-  const BonanzaLottery = await ethers.getContractFactory("BonanzaLottery");
+  const IzzyLottery = await ethers.getContractFactory("IzzyLottery");
 
   const currency = storage.TestERC20;
   const coupon = await ethers.getContractAt("Coupon", storage.Coupon);
@@ -14,7 +14,7 @@ async function main() {
   const random = await Random.deploy();
   await random.deployed();
 
-  const lottery = await BonanzaLottery.deploy(
+  const lottery = await IzzyLottery.deploy(
     currency,
     random.address,
     coupon.address,
@@ -22,7 +22,7 @@ async function main() {
   );
   await lottery.deployed();
 
-  await writeAndLog({ BonanzaLottery: lottery.address, BonanzaRandom: random.address });
+  await writeAndLog({ IzzyLottery: lottery.address, IzzyRandom: random.address });
 
   await run("verify:verify", {
     address: random.address,
@@ -35,16 +35,16 @@ async function main() {
   }).catch((e) => console.error(e));
 
   // TODO: Required
-  await (await random.setLotteryAddress(lottery.address)).wait();
+  await(await random.setLotteryAddress(lottery.address)).wait();
 
   // Config for testing
-  await (await random.saveRandomResult([1, 2, 3, 4, 5, 6])).wait();
+  await(await random.saveRandomResult([1, 2, 3])).wait();
 
   // Can re-run below function
-  await (await referral.grantRole(keccak256(toUtf8Bytes("GAME_ROLE")), lottery.address)).wait();
-  await (await coupon.grantRole(keccak256(toUtf8Bytes("GAME_ROLE")), lottery.address)).wait();
-  const [signer, signer2, signer3] = await ethers.getSigners();
-  await (
+  await(await referral.grantRole(keccak256(toUtf8Bytes("GAME_ROLE")), lottery.address)).wait();
+  await(await coupon.grantRole(keccak256(toUtf8Bytes("GAME_ROLE")), lottery.address)).wait();
+  const [signer, signer2,signer3] = await ethers.getSigners();
+  await(
     await lottery.setAdminAddresses(
       signer.address,
       signer2.address,

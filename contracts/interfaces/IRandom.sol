@@ -16,4 +16,7 @@ interface IRandom {
      * Views random result
      */
     function viewRandomResult() external view returns (bytes memory);
+
+    /// @dev number of words to random
+    function numWords() external view returns (uint32);
 }

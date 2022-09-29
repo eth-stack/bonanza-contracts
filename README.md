@@ -1,3 +1,13 @@
+# Main contracts
+1. BonanzaLottery.sol
+2. IzzyLottery.sol
+3. Referral.sol
+4. Coupon.sol
+5. RandomNumberGenerator.sol
+6. BwheelGame.sol
+7. PredictionGame.sol
+
+Notes: Bonanza and Izzy are similar. Only change a litle bit.
 # Advanced Sample Hardhat Project
 
 This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.

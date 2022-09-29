@@ -11,30 +11,26 @@ import "./interfaces/IRandom.sol";
 import "./interfaces/IReferral.sol";
 import "./interfaces/ICoupon.sol";
 
-contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
+contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
-    uint256 internal constant MIN_LENGTH_LOTTERY = 6 minutes - 5 minutes; // 4 hours
-    uint256 internal constant MAX_LENGTH_LOTTERY = 4 days + 5 minutes; // 4 days
+    uint256 internal constant MIN_LENGTH_LOTTERY = 6 minutes - 5 minutes; // 15 mins
+    uint256 internal constant MAX_LENGTH_LOTTERY = 2 hours + 5 minutes; // 2 hours
     uint256 internal constant MIN_DISCOUNT_DIVISOR = 300;
-    uint256 internal constant MIN_JP_PRIZE = 1200 ether;
-    uint256 internal constant MAX_PRIZE_1ST = 500 ether;
-    uint256 internal constant MAX_PRIZE_2ND = 15 ether;
-    uint256 internal constant MAX_PRIZE_3RD = 1.5 ether;
+    uint256 internal constant MIN_JP_PRIZE = 999 ether;
+    uint256 internal constant MAX_PRIZE_1ST = 99 ether;
 
     uint256 internal constant AFFILIATE_RATE = 500;
     uint256 internal constant TOTAL_PRIZE_RATE = 4500;
     uint256 internal constant ESCROW_RETURN_RATE = 2000;
-    uint256 internal constant RATE_PRIZE_1ST = 287;
-    uint256 internal constant RATE_PRIZE_2ND = 409;
-    uint256 internal constant RATE_PRIZE_3RD = 673;
+    uint256 internal constant RATE_PRIZE_1ST = 393;
 
     uint256 private currentLotteryId;
     uint256 public currentTicketId;
 
     uint256 public maxNumberTicketsPerBuyOrClaim = 100;
     uint256 public maxPriceTicket = 50 ether;
-    uint256 public minPriceTicket = 0.005 ether;
+    uint256 public minPriceTicket = 0.5 ether;
 
     IRandom public randomGenerator;
     IERC20 public currency;
@@ -55,7 +51,7 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
     }
 
     struct Ticket {
-        bytes6 number;
+        bytes3 number;
         address owner;
     }
 
@@ -73,9 +69,9 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
         uint256 affiliateTreasury;
         uint256 escrowCredit;
         uint256 affiliatePrize;
-        uint256[4] prizeAmounts;
-        uint256[4] ticketsWin;
-        bytes6 finalNumber;
+        uint256[2] prizeAmounts;
+        uint256[2] ticketsWin;
+        bytes3 finalNumber;
         Status status;
     }
 
@@ -111,7 +107,7 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
         uint256 priceTicket,
         uint256 firstTicketId
     );
-    event LotteryNumberDrawn(uint256 indexed lotteryId, bytes6 finalNumber);
+    event LotteryNumberDrawn(uint256 indexed lotteryId, bytes3 finalNumber);
     event DebtPaid(uint256 indexed lotteryId, uint256 amount);
     event NewRandomGenerator(address indexed randomGenerator);
     event TicketsPurchase(
@@ -146,12 +142,12 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
         couponCenter = ICoupon(_coupon);
         referralProgram = IReferral(_referral);
 
-        require(randomGenerator.numWords() == 6, "Random generator should random 6 numbers");
+        require(randomGenerator.numWords() == 3, "Random generator should random 3 numbers");
     }
 
     function buyTickets(
         uint256 lotteryId,
-        bytes6[] calldata ticketNumbers,
+        bytes3[] calldata ticketNumbers,
         bytes32 code,
         ICoupon.Coupon calldata coupon
     ) external notContract nonReentrant {
@@ -199,7 +195,7 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
             couponSale;
 
         for (uint256 i = 0; i < ticketNumbers.length; i++) {
-            bytes6 number = ticketNumbers[i];
+            bytes3 number = ticketNumbers[i];
             _validateTicket(number);
 
             userTicketIdsPerLotteryId[msg.sender][lotteryId].push(currentTicketId);
@@ -251,12 +247,12 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
             );
 
             // Check user is claiming the correct ticket
-            if (_matched >= 3) {
+            if (_matched >= 2) {
                 // Increment the reward to transfer
-                rewardToTransfer += lotteries[_lotteryId].prizeAmounts[6 - _matched];
+                rewardToTransfer += lotteries[_lotteryId].prizeAmounts[3 - _matched];
 
                 // Add rewards for affiliate program
-                if (_matched == 6) {
+                if (_matched == 3) {
                     affiliateReward += lotteries[_lotteryId].affiliatePrize;
                 }
             } else {
@@ -331,36 +327,18 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
         Lottery storage lottery = lotteries[_lotteryId];
 
         lottery.status = Status.Claimable;
-        lottery.finalNumber = bytes6(randomGenerator.viewRandomResult());
-        lottery.ticketsWin = [winCounts[0], winCounts[1], winCounts[2], winCounts[3]];
+        lottery.finalNumber = bytes3(randomGenerator.viewRandomResult());
+        lottery.ticketsWin = [winCounts[0], winCounts[1]];
         lottery.prizeAmounts[1] = _calculatePrize(
             lottery.amountTotal,
             RATE_PRIZE_1ST,
             winCounts[1],
             MAX_PRIZE_1ST
         );
-        lottery.prizeAmounts[2] = _calculatePrize(
-            lottery.amountTotal,
-            RATE_PRIZE_2ND,
-            winCounts[2],
-            MAX_PRIZE_2ND
-        );
-        lottery.prizeAmounts[3] = _calculatePrize(
-            lottery.amountTotal,
-            RATE_PRIZE_3RD,
-            winCounts[3],
-            MAX_PRIZE_3RD
-        );
 
         uint256 prizeAmount = (lottery.amountTotal * TOTAL_PRIZE_RATE) / 10000;
 
-        uint256 jpAmount = prizeAmount -
-            (lottery.prizeAmounts[1] *
-                winCounts[1] +
-                lottery.prizeAmounts[2] *
-                winCounts[2] +
-                lottery.prizeAmounts[3] *
-                winCounts[3]);
+        uint256 jpAmount = prizeAmount - lottery.prizeAmounts[1] * winCounts[1];
 
         // Pay debt
         if (lottery.escrowCredit > 0) {
@@ -445,9 +423,7 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
         stoppedAt = currentLotteryId;
 
         uint256 amount = lottery.affiliateTreasury + lottery.jpTreasury;
-        uint256 refundAmount = lottery.amountTotal -
-            (lottery.ticketsWin[1] + lottery.ticketsWin[2] + lottery.ticketsWin[3]) *
-            lottery.priceTicket;
+        uint256 refundAmount = lottery.amountTotal - lottery.ticketsWin[1] * lottery.priceTicket;
 
         if (amount < refundAmount) {
             currency.safeTransferFrom(msg.sender, address(this), refundAmount - amount);
@@ -509,9 +485,9 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
             amountUsed: 0,
             totalReferral: 0,
             amountTotal: 0,
-            finalNumber: 0x000000000000,
-            prizeAmounts: [uint256(0), 0, 0, 0],
-            ticketsWin: [uint256(0), 0, 0, 0],
+            finalNumber: 0x000000,
+            prizeAmounts: [uint256(0), 0],
+            ticketsWin: [uint256(0), 0],
             jpTreasury: 0,
             affiliateTreasury: lotteries[lastLotteryId].affiliateTreasury,
             escrowCredit: lotteries[lastLotteryId].escrowCredit,
@@ -553,8 +529,7 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
             lotteries[currentLotteryId].status == Status.Claimable,
             "Lottery not in claimable"
         );
-
-        require(randomGenerator.numWords() == 6, "Random generator should random 6 numbers");
+        require(randomGenerator.numWords() == 3, "Random generator should random 3 numbers");
 
         // Request a random number from the generator based on a seed
         IRandom(_randomGeneratorAddress).requestRandomNumbers();
@@ -641,10 +616,10 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
     function viewNumbersAndAddressForTicketIds(uint256[] calldata _ticketIds)
         external
         view
-        returns (bytes6[] memory, address[] memory)
+        returns (bytes3[] memory, address[] memory)
     {
         uint256 length = _ticketIds.length;
-        bytes6[] memory ticketNumbers = new bytes6[](length);
+        bytes3[] memory ticketNumbers = new bytes3[](length);
         address[] memory ticketStatuses = new address[](length);
 
         for (uint256 i = 0; i < length; i++) {
@@ -683,7 +658,7 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
             lotteries[_lotteryId].finalNumber,
             tickets[_ticketId].number
         );
-        return _matched >= 3 ? lotteries[_lotteryId].prizeAmounts[6 - _matched] : 0;
+        return _matched >= 2 ? lotteries[_lotteryId].prizeAmounts[3 - _matched] : 0;
     }
 
     /**
@@ -703,7 +678,7 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
         view
         returns (
             uint256[] memory,
-            bytes6[] memory,
+            bytes3[] memory,
             bool[] memory,
             uint256
         )
@@ -717,7 +692,7 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
         }
 
         uint256[] memory lotteryTicketIds = new uint256[](length);
-        bytes6[] memory ticketNumbers = new bytes6[](length);
+        bytes3[] memory ticketNumbers = new bytes3[](length);
         bool[] memory ticketStatuses = new bool[](length);
 
         for (uint256 i = 0; i < length; i++) {
@@ -746,9 +721,9 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
             _discountDivisor;
     }
 
-    function _validateTicket(bytes6 number) internal pure {
+    function _validateTicket(bytes3 number) internal pure {
         require(uint8(number[0]) <= 45 && uint8(number[0]) >= 1, "numbers should in range 1-45");
-        for (uint8 i = 1; i < 6; i++) {
+        for (uint8 i = 1; i < 3; i++) {
             require(
                 uint8(number[i]) <= 45 && uint8(number[i]) >= 1,
                 "number should in range 1-45"
@@ -784,16 +759,16 @@ contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
         }
     }
 
-    function _countMatch(bytes6 first, bytes6 second)
+    function _countMatch(bytes3 first, bytes3 second)
         internal
         pure
         returns (uint8)
     {
         uint8 matchedCount = 0;
         // Simply get (start from) the first number from the input array
-        for (uint8 ii = 0; ii < 6; ii++) {
+        for (uint8 ii = 0; ii < 3; ii++) {
             // and check it against the second array numbers, from first to fourth,
-            for (uint8 jj = 0; jj < 6; jj++) {
+            for (uint8 jj = 0; jj < 3; jj++) {
                 // If you find it
                 if (first[ii] == second[jj]) {
                     matchedCount += 1;

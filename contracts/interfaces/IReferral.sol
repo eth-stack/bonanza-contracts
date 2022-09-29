@@ -5,12 +5,14 @@ interface IReferral {
     /// @notice Adds an address as referrer.
     /// @param user The address of the user.
     /// @param code The unique code of for referral link would set as referrer of user.
+    /// @dev Callable by lottery contract
     function addReferrer(address user, bytes32 code) external;
 
     /// @notice Calculates and allocate referrer(s) credits to uplines.
     /// @param user Address of the gamer to find referrer(s).
     /// @param token The token to allocate.
     /// @param amount The number of tokens allocated for referrer(s).
+    /// @dev Callable by lottery contract
     function payReferral(
         address user,
         address token,

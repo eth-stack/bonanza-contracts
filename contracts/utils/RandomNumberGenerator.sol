@@ -13,13 +13,12 @@ import "../interfaces/ILottery.sol";
 contract RandomNumberGenerator is VRFConsumerBaseV2, IRandom, Ownable {
     using SafeERC20 for IERC20;
 
-    bytes32 private constant MEGA_6_45 =
+    bytes32 private constant ALPHABET =
         0x0102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F20;
-    bytes13 private constant MEGA_6_45_EXTENDED = 0x2122232425262728292A2B2C2D;
+    bytes13 private constant ALPHABET_EXTENDED = 0x2122232425262728292A2B2C2D;
 
-    address public jpAddress;
-    uint32 numWords;
-
+    uint32 public numWords;
+    address public lotteryAddress;
     uint256 public latestRequestId;
     bytes public randomResult;
     uint256 public latestLotteryId;
@@ -64,7 +63,7 @@ contract RandomNumberGenerator is VRFConsumerBaseV2, IRandom, Ownable {
      * @notice Request randomness from a user-provided seed
      */
     function requestRandomNumbers() external override {
-        require(msg.sender == jpAddress, "Only Lottery");
+        require(msg.sender == lotteryAddress, "Only Lottery");
         latestRequestId = coordinator.requestRandomWords(
             keyHash,
             subscriptionId,
@@ -103,7 +102,7 @@ contract RandomNumberGenerator is VRFConsumerBaseV2, IRandom, Ownable {
      * @param _jpAddress: address of the PancakeSwap lottery
      */
     function setLotteryAddress(address _jpAddress) external onlyOwner {
-        jpAddress = _jpAddress;
+        lotteryAddress = _jpAddress;
     }
 
     /**
@@ -137,8 +136,8 @@ contract RandomNumberGenerator is VRFConsumerBaseV2, IRandom, Ownable {
         require(latestRequestId == requestId, "Wrong requestId");
         bytes memory alphabet = new bytes(45);
         assembly {
-            mstore(add(alphabet, 32), MEGA_6_45)
-            mstore(add(alphabet, 64), MEGA_6_45_EXTENDED)
+            mstore(add(alphabet, 32), ALPHABET)
+            mstore(add(alphabet, 64), ALPHABET_EXTENDED)
         }
 
         randomResult = new bytes(numWords);
@@ -149,6 +148,6 @@ contract RandomNumberGenerator is VRFConsumerBaseV2, IRandom, Ownable {
             alphabet[index] = alphabet[alphabet.length - 1 - i];
         }
 
-        latestLotteryId = ILottery(jpAddress).viewCurrentLotteryId();
+        latestLotteryId = ILottery(lotteryAddress).viewCurrentLotteryId();
     }
 }

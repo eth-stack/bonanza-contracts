@@ -39,6 +39,7 @@ contract Referral is IReferral, AccessControl, ReentrancyGuard {
 
     // End-user address -> agent code
     mapping(address => bytes32) private _accounts;
+    mapping(address => bool) private _notNewUsers;
 
     event NewRefLink(bytes32 code, uint96 percent, address mainAgent, address owner);
     event NewMainAgentRate(address agent, uint96 rewardRate);
@@ -58,6 +59,7 @@ contract Referral is IReferral, AccessControl, ReentrancyGuard {
 
     function addReferrer(address user, bytes32 code) external onlyRole(GAME_ROLE) {
         if (
+            _notNewUsers[user] || // is not new user
             _accounts[user] != bytes32(0) || // Address have been registered upline
             _links[code].percent == 0 || // referrer is not exist
             _links[code].owner == user // Use same account as ref
@@ -74,6 +76,10 @@ contract Referral is IReferral, AccessControl, ReentrancyGuard {
         address token,
         uint256 amount
     ) external onlyRole(GAME_ROLE) returns (uint256, uint256) {
+        if (!_notNewUsers[user]) {
+            _notNewUsers[user] = true;
+        }
+
         bytes32 code = _accounts[user];
         if (code == bytes32(0) || token == address(0)) {
             return (0, 0);
@@ -167,6 +173,11 @@ contract Referral is IReferral, AccessControl, ReentrancyGuard {
             codes[i] = _ownerCodes[owner][i];
             percents[i] = _links[codes[i]].percent;
         }
+    }
+
+    /// @dev check a user is new user or not
+    function isNewUser(address user) external view returns (bool) {
+        return !_notNewUsers[user];
     }
 
     /// @notice Gets the referrer's token credits.

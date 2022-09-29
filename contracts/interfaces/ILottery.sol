@@ -4,17 +4,6 @@ import "./ICoupon.sol";
 
 interface ILottery {
     /**
-     * @notice Buy tickets for the current lottery
-     * @dev Callable by users
-     */
-    function buyTickets(
-        uint256 lotteryId,
-        bytes6[] calldata ticketNumbers,
-        bytes32 code,
-        ICoupon.Coupon calldata coupon
-    ) external;
-
-    /**
      * @notice Claim a set of winning tickets for a lottery
      * @param _lotteryId: lottery id
      * @param _ticketIds: array of ticket ids
@@ -36,7 +25,7 @@ interface ILottery {
      */
     function drawFinalNumberAndMakeLotteryClaimable(
         uint256 _lotteryId,
-        uint256[4] calldata winCounts
+        uint256[] calldata winCounts
     ) external;
 
     /**
@@ -55,5 +44,8 @@ interface ILottery {
         uint256 _discountDivisor
     ) external;
 
+    /**
+     * @notice view current lottery id
+     */
     function viewCurrentLotteryId() external view returns (uint256);
 }

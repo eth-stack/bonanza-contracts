@@ -5,7 +5,9 @@ import { writeAndLog } from "./util";
 async function main() {
   const Coupon = await ethers.getContractFactory("Coupon");
 
-  const _adminAddress = "0x1CDa20Da747cd1cfF0ad025fF1c2A9477f3a9626";
+  const [signer] = await ethers.getSigners()
+  const _adminAddress = signer.address;
+
   const coupon = await Coupon.deploy(_adminAddress);
   await coupon.deployed();
 

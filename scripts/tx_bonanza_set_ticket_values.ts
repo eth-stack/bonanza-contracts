@@ -6,7 +6,7 @@ import * as storage from "../storage.json";
 async function main() {
   const jp = await ethers.getContractAt("BonanzaLottery", storage.BonanzaLottery);
 
-  const tx = await jp.setTicketValues(parseEther("1"), parseEther("1000"), 100);
+  const tx = await jp.setTicketValues(parseEther("1"), parseEther("100"), 100);
   await tx.wait();
 
   console.log("Set Ticket Values OK:", tx.hash);
