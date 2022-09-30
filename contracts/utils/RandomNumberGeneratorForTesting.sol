@@ -14,6 +14,10 @@ contract RandomNumberGeneratorForTesting is IRandom, Ownable {
     uint256 public latestRequestId;
     bytes public randomResult;
 
+    constructor(uint32 _numWords) {
+        numWords = _numWords;
+    }
+
     function requestRandomNumbers() external override {
         require(msg.sender == jpAddress, "Only Lottery");
         latestRequestId = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));

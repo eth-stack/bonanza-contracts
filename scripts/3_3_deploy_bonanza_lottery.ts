@@ -11,7 +11,7 @@ async function main() {
   const referral = await ethers.getContractAt("Referral", storage.Referral);
 
   const Random = await ethers.getContractFactory("RandomNumberGeneratorForTesting");
-  const random = await Random.deploy();
+  const random = await Random.deploy(6);
   await random.deployed();
 
   const lottery = await BonanzaLottery.deploy(

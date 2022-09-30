@@ -52,10 +52,9 @@ describe("Referral", function () {
 
     {
       const code = toBytes32("duynghia");
-      console.log(code);
       await expect(referral.createLink(code, 5000, constants.AddressZero))
         .emit(referral, "NewRefLink")
-        .withArgs(code, 5000, constants.AddressZero);
+        .withArgs(code, 5000, constants.AddressZero, signer.address);
 
       await expect(referral.createLink(code, 5000, constants.AddressZero)).revertedWith(
         "Code used"
@@ -66,7 +65,7 @@ describe("Referral", function () {
       const code = toBytes32("duynghia" + i);
       await expect(referral.createLink(code, 500, address2.address))
         .emit(referral, "NewRefLink")
-        .withArgs(code, 500, constants.AddressZero);
+        .withArgs(code, 500, constants.AddressZero, signer.address);
     }
 
     const refs = await referral.viewLinks(signer.address);
@@ -106,11 +105,11 @@ describe("Referral", function () {
 
     await expect(referral.createLink(code, 500, mainAgent.address))
       .emit(referral, "NewRefLink")
-      .withArgs(code, 500, mainAgent.address);
+      .withArgs(code, 500, mainAgent.address, signer.address);
 
     const code2 = toBytes32("duynghia2");
     await expect(referral.createLink(code2, 500, address2.address))
       .emit(referral, "NewRefLink")
-      .withArgs(code2, 500, mainAgent.address);
+      .withArgs(code2, 500, mainAgent.address, signer.address);
   });
 });

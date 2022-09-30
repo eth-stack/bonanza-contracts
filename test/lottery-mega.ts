@@ -33,10 +33,11 @@ async function deployJackpot() {
   await currency.deployed();
 
   const Random = await ethers.getContractFactory("RandomNumberGeneratorForTesting");
-  const random = await Random.deploy();
+  const random = await Random.deploy(6);
   await random.deployed();
 
-  const [operator, treasury, injector, buyer, ...otherBuyers] = await ethers.getSigners();
+  const [operator, treasury, injector, buyer, affiliateReceiver, ...otherBuyers] =
+    await ethers.getSigners();
   const Coupon = await ethers.getContractFactory("Coupon");
   const coupon = await Coupon.deploy(operator.address);
   await coupon.deployed();
@@ -66,10 +67,11 @@ async function deployJackpot() {
   }
 
   await expect(
-    jp.setOperatorAndTreasuryAndInjectorAddresses(
+    jp.setAdminAddresses(
       operator.address,
       treasury.address,
-      injector.address
+      injector.address,
+      affiliateReceiver.address
     )
   ).to.be.fulfilled;
 
@@ -518,6 +520,7 @@ describe("BonanzaLottery", function () {
     expect(lottery.finalNumber).equal(finalNumber);
     expect(lottery.jpTreasury).equal(0);
     expect(lottery.prizeAmounts[0]).equal(parseEther(suite.prizeJp).div(winCounts[0]));
+    expect(lottery.affiliatePrize).greaterThan(0);
 
     let prize = [suite.prizeJp, suite.prize1st, suite.prize2nd, suite.prize3rd];
     let countIndex = 0;
@@ -528,8 +531,13 @@ describe("BonanzaLottery", function () {
         const matched = matchCount(tickets[i][j], Array.from(arrayify(finalNumber)));
         expect(matched, "Matched tickets").eq(6 - i);
 
+        const affiliateRewards = matched == 6 ? lottery.affiliatePrize : 0;
         await expect(jp.connect(buyer).claimTickets(lotteryId, [countIndex]))
-          .to.changeTokenBalances(currency, [jp.address, buyer.address], [amount.mul(-1), amount])
+          .to.changeTokenBalances(
+            currency,
+            [jp.address, buyer.address],
+            [amount.add(affiliateRewards).mul(-1), amount]
+          )
           .to.emit(jp, "TicketsClaim")
           .withArgs(buyer.address, amount, lotteryId, 1);
 

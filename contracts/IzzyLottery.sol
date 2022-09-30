@@ -122,7 +122,7 @@ contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
         uint256 indexed lotteryId,
         uint256 numberTickets
     );
-    event AffiliatePrizePaid(address claimer, uint256 amount, uint256 lotteryId);
+    event AffiliatePrizePaid(address winner, address receiver, uint256 amount, uint256 lotteryId);
     event WithdrawnEscrowFunds(uint256 lotteryId, address receiver, uint256 amount);
     event LotteryStopped(
         uint256 lotteryId,
@@ -293,7 +293,7 @@ contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
 
         currency.safeTransfer(receiver, amount);
 
-        emit AffiliatePrizePaid(msg.sender, amount, _lotteryId);
+        emit AffiliatePrizePaid(msg.sender, receiver, amount, _lotteryId);
     }
 
     /**
@@ -323,6 +323,7 @@ contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
     ) external override onlyOperator nonReentrant {
         require(lotteries[_lotteryId].status == Status.Close, "Lottery not close");
         require(_lotteryId == randomGenerator.viewLatestLotteryId(), "Numbers not drawn");
+        require(winCounts.length == 2, "Should provide 2 counter");
 
         Lottery storage lottery = lotteries[_lotteryId];
 
