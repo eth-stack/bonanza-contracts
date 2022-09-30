@@ -14,7 +14,7 @@ import "./interfaces/ICoupon.sol";
 contract BonanzaLottery is ILottery, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
-    uint256 internal constant MIN_LENGTH_LOTTERY = 6 minutes - 5 minutes; // 4 hours
+    uint256 internal constant MIN_LENGTH_LOTTERY = 4 hours - 5 minutes; // 4 hours
     uint256 internal constant MAX_LENGTH_LOTTERY = 4 days + 5 minutes; // 4 days
     uint256 internal constant MIN_DISCOUNT_DIVISOR = 300;
     uint256 internal constant MIN_JP_PRIZE = 1200 ether;

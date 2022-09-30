@@ -14,8 +14,8 @@ import "./interfaces/ICoupon.sol";
 contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
-    uint256 internal constant MIN_LENGTH_LOTTERY = 6 minutes - 5 minutes; // 15 mins
-    uint256 internal constant MAX_LENGTH_LOTTERY = 2 hours + 5 minutes; // 2 hours
+    uint256 internal constant MIN_LENGTH_LOTTERY = 15 minutes - 5 minutes;
+    uint256 internal constant MAX_LENGTH_LOTTERY = 2 hours + 5 minutes;
     uint256 internal constant MIN_DISCOUNT_DIVISOR = 300;
     uint256 internal constant MIN_JP_PRIZE = 999 ether;
     uint256 internal constant MAX_PRIZE_1ST = 99 ether;
@@ -655,10 +655,7 @@ contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
             return 0;
         }
 
-        uint8 _matched = _countMatch(
-            lotteries[_lotteryId].finalNumber,
-            tickets[_ticketId].number
-        );
+        uint8 _matched = _countMatch(lotteries[_lotteryId].finalNumber, tickets[_ticketId].number);
         return _matched >= 2 ? lotteries[_lotteryId].prizeAmounts[3 - _matched] : 0;
     }
 
@@ -760,11 +757,7 @@ contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
         }
     }
 
-    function _countMatch(bytes3 first, bytes3 second)
-        internal
-        pure
-        returns (uint8)
-    {
+    function _countMatch(bytes3 first, bytes3 second) internal pure returns (uint8) {
         uint8 matchedCount = 0;
         // Simply get (start from) the first number from the input array
         for (uint8 ii = 0; ii < 3; ii++) {
