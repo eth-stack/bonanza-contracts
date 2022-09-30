@@ -28,7 +28,7 @@ async function main() {
     console.log("Approving ERC20...");
     await (await currency.connect(signer).approve(jp.address, constants.MaxUint256)).wait();
   }
-  const tx = await jp.connect(signer).buyTickets(lotteryId, tickets, 0, emptyCoupon);
+  const tx = await jp.connect(signer).buyTickets(lotteryId, tickets, "", emptyCoupon);
   await tx.wait();
 
   console.log("Buy OK:", tx.hash);

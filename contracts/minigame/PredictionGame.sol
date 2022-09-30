@@ -240,13 +240,26 @@ contract PredictionGame is Ownable, Pausable, ReentrancyGuard {
         // Head wins
         if (round.head) {
             rewardBaseCalAmount = round.headAmount;
-            treasuryAmt = (round.totalAmount * treasuryRate) / 10000;
+
+            //no winner , house win
+            if (rewardBaseCalAmount == 0) {
+                treasuryAmt = round.totalAmount;
+            } else {
+                treasuryAmt = (round.totalAmount * treasuryRate) / 10000;
+            }
 
             rewardAmount = round.totalAmount - treasuryAmt;
             // End wins
         } else {
             rewardBaseCalAmount = round.endAmount;
-            treasuryAmt = (round.totalAmount * treasuryRate) / 10000;
+
+            //no winner , house win
+            if (rewardBaseCalAmount == 0) {
+                treasuryAmt = round.totalAmount;
+            } else {
+                treasuryAmt = (round.totalAmount * treasuryRate) / 10000;
+            }
+
             rewardAmount = round.totalAmount - treasuryAmt;
         }
 

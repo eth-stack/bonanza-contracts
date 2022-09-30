@@ -26,7 +26,7 @@ async function main() {
 
   await run("verify:verify", {
     address: random.address,
-    constructorArguments: [],
+    constructorArguments: [6],
   }).catch((e) => console.error(e));
 
   await run("verify:verify", {

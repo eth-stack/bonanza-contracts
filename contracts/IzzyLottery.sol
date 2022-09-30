@@ -655,7 +655,10 @@ contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
             return 0;
         }
 
-        uint8 _matched = _countMatch(lotteries[_lotteryId].finalNumber, tickets[_ticketId].number);
+        uint8 _matched = _countMatch(
+            lotteries[_lotteryId].finalNumber,
+            tickets[_ticketId].number
+        );
         return _matched >= 2 ? lotteries[_lotteryId].prizeAmounts[3 - _matched] : 0;
     }
 
@@ -757,7 +760,11 @@ contract IzzyLottery is ILottery, ReentrancyGuard, Ownable {
         }
     }
 
-    function _countMatch(bytes3 first, bytes3 second) internal pure returns (uint8) {
+    function _countMatch(bytes3 first, bytes3 second)
+        internal
+        pure
+        returns (uint8)
+    {
         uint8 matchedCount = 0;
         // Simply get (start from) the first number from the input array
         for (uint8 ii = 0; ii < 3; ii++) {
