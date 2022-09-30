@@ -4,8 +4,8 @@
 3. Referral.sol
 4. Coupon.sol
 5. RandomNumberGenerator.sol
-6. BwheelGame.sol
-7. PredictionGame.sol
+6. PredictionGame.sol
+7. BwheelGame.sol
 
 Notes: Bonanza and Izzy are similar. Only change a litle bit.
 # Advanced Sample Hardhat Project
