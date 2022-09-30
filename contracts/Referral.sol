@@ -89,7 +89,7 @@ contract Referral is IReferral, AccessControl, ReentrancyGuard {
 
         uint256 totalReferral = (amount * _calcRewardRate(referrer)) / DECIMALS;
         uint256 credit = (totalReferral * _links[code].percent) / DECIMALS;
-        _credits[token][referrer] += credit;
+        _credits[referrer][token] += credit;
 
         emit AddReferralCredit(referrer, token, credit);
 
